@@ -24,33 +24,6 @@
   .footer { margin-top: 2rem; font-size: 12px; color: #999; border-top: 0.5px solid #ddd; padding-top: 1rem; }
   .last-updated { font-size: 11px; color: #bbb; margin-top: .5rem; }
   .error-msg { background: #FCEBEB; border-left: 3px solid #A32D2D; border-radius: 6px; padding: 10px 14px; font-size: 13px; color: #A32D2D; margin-bottom: 1rem; display: none; }
-
-  /* ADMIN */
-  .admin-toggle { margin-top: 2.5rem; border-top: 0.5px solid #ddd; padding-top: 1rem; }
-  .admin-toggle summary { font-size: 13px; color: #185FA5; cursor: pointer; user-select: none; }
-  .admin-panel { margin-top: 1rem; background: #fff; border: 0.5px solid #ddd; border-radius: 10px; padding: 1rem 1.25rem; }
-  .admin-panel h2 { font-size: 15px; font-weight: 500; margin-bottom: .5rem; }
-  .api-config { background: #f5f5f3; border-radius: 8px; padding: .75rem 1rem; margin-bottom: 1rem; }
-  .api-config label { font-size: 12px; color: #888; display: block; margin-bottom: 4px; }
-  .api-config input { font-size: 13px; padding: 6px 10px; border-radius: 6px; border: 0.5px solid #ccc; width: 100%; background: #fff; color: #1a1a1a; }
-  .api-config button { margin-top: 8px; font-size: 12px; padding: 5px 14px; border-radius: 6px; border: none; background: #185FA5; color: #fff; cursor: pointer; }
-  .summary-bar { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 1.25rem; }
-  .scard { background: #f5f5f3; border-radius: 8px; padding: .65rem 1rem; }
-  .scard .num { font-size: 20px; font-weight: 500; }
-  .scard .lbl { font-size: 11px; color: #888; margin-top: 2px; }
-  .admin-day { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: #888; margin: .75rem 0 .25rem; }
-  .admin-row { display: grid; grid-template-columns: 60px 1fr 160px 130px; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid #eee; }
-  .admin-row:last-child { border-bottom: none; }
-  select, input[type=text] { font-size: 13px; padding: 5px 8px; border-radius: 6px; border: 0.5px solid #ccc; background: #fff; color: #1a1a1a; width: 100%; }
-  .save-row { display: flex; align-items: center; gap: 12px; margin-top: 1rem; }
-  .save-btn { background: #185FA5; color: #fff; border: none; padding: 8px 20px; border-radius: 6px; font-size: 13px; cursor: pointer; }
-  .save-btn:hover { background: #0C447C; }
-  .save-btn:disabled { opacity: .5; cursor: not-allowed; }
-  .status-msg { font-size: 12px; }
-  .status-ok { color: #3B6D11; }
-  .status-err { color: #A32D2D; }
-  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid #ccc; border-top-color: #185FA5; border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle; }
-  @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -76,24 +49,6 @@
   <div class="footer">
     Atualizado pela equipe Editora B18 · editorab18.com.br
   </div>
-
-  <details class="admin-toggle">
-    <summary>⚙ Acesso administrativo (equipe B18)</summary>
-    <div class="admin-panel">
-      <h2>Painel de controle</h2>
-      <div class="api-config">
-        <label>URL do Google Apps Script (cole aqui uma única vez)</label>
-        <input type="text" id="api-url" placeholder="https://script.google.com/macros/s/XXXXXX/exec">
-        <button onclick="saveApiUrl()">Salvar URL</button>
-      </div>
-      <div class="summary-bar" id="summary"></div>
-      <div id="admin-view"><p style="font-size:13px;color:#999">Configure a URL acima para carregar o painel.</p></div>
-      <div class="save-row">
-        <button class="save-btn" id="save-btn" onclick="saveSlot()" disabled>Salvar alteração</button>
-        <span class="status-msg" id="status-msg"></span>
-      </div>
-    </div>
-  </details>
 </div>
 
 <script>
@@ -102,59 +57,22 @@ const DAYS_META = {
   d2: "Dia 2 — 13 de agosto de 2026 (quarta-feira)"
 };
 
-// ─── GRADE FIXA (fallback quando não há Apps Script configurado) ───
 const FALLBACK = [
-  { day:"d1", time:"14h05", topic:"PALESTRA: Legalidade do seguro internacional e tributação",                          status:"taken",     partner:"" },
-  { day:"d1", time:"14h45", topic:"PALESTRA: Seguro internacional: Private Placement Life Insurance (PPLI)",             status:"taken", partner:"" },
-  { day:"d1", time:"15h15", topic:"Apenas apoiador do coffee break (sem palestra)- Disponível",                                        status:"available", partner:"" },  
-  { day:"d1", time:"15h50", topic:"PALESTRA: Instituição de usufruto nas Bahamas e BVI",                                 status:"taken", partner:"" },
-  { day:"d1", time:"16h30", topic:"PALESTRA: Disponível",                                                                status:"available", partner:"" },
-  { day:"d1", time:"17h15", topic:"PALESTRA: Disponível",                                                                status:"available", partner:"" },
-  { day:"d2", time:"14h05", topic:"PALESTRA: Disponível",                                                                status:"available", partner:"" },
-  { day:"d2", time:"14h45", topic:"PALESTRA: Disponível",                                                                status:"available", partner:"" },
-  { day:"d2", time:"15h15", topic:"Apenas apoiador do coffee break (sem palestra)- Disponível",                                        status:"available", partner:"" },    
-  { day:"d2", time:"15h50", topic:"PALESTRA: Tributação de heranças e doações no exterior (LC 227 e Lei 15.270/2025)",  status:"taken",     partner:"" },
-  { day:"d2", time:"16h30", topic:"PALESTRA: Disponível",                                                                status:"available", partner:"" },
-  { day:"d2", time:"17h15", topic:"PALESTRA: Disponível",                                                                status:"available", partner:"" },
+  { day:"d1", time:"14h05", topic:"Legalidade do seguro internacional e tributação",                         status:"taken",     partner:"" },
+  { day:"d1", time:"14h45", topic:"Seguro internacional: Private Placement Life Insurance (PPLI)",            status:"taken",     partner:"" },
+  { day:"d1", time:"15h15", topic:"Apenas apoiador do coffee break (sem palestra) - Disponível",              status:"available", partner:"" },
+  { day:"d1", time:"15h50", topic:"Instituição de usufruto nas Bahamas e BVI",                                status:"taken",     partner:"" },
+  { day:"d1", time:"16h30", topic:"Disponível",                                                               status:"available", partner:"" },
+  { day:"d1", time:"17h15", topic:"Disponível",                                                               status:"available", partner:"" },
+  { day:"d2", time:"14h05", topic:"Disponível",                                                               status:"available", partner:"" },
+  { day:"d2", time:"14h45", topic:"Disponível",                                                               status:"available", partner:"" },
+  { day:"d2", time:"15h15", topic:"Apenas apoiador do coffee break (sem palestra) - Disponível",              status:"available", partner:"" },
+  { day:"d2", time:"15h50", topic:"Tributação de heranças e doações no exterior (LC 227 e Lei 15.270/2025)", status:"taken",     partner:"" },
+  { day:"d2", time:"16h30", topic:"Disponível",                                                               status:"available", partner:"" },
+  { day:"d2", time:"17h15", topic:"Disponível",                                                               status:"available", partner:"" },
 ];
 
 let allSlots = JSON.parse(JSON.stringify(FALLBACK));
-let pendingChange = null;
-let usingSheets = false;
-
-function getApiUrl() { return localStorage.getItem("b18_api_url") || ""; }
-
-function saveApiUrl() {
-  const url = document.getElementById("api-url").value.trim();
-  if (!url) return;
-  localStorage.setItem("b18_api_url", url);
-  loadSlots();
-}
-
-async function loadSlots() {
-  const url = getApiUrl();
-  document.getElementById("api-url").value = url;
-
-  if (url) {
-    try {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error();
-      const data = await res.json();
-      if (Array.isArray(data) && data.length) {
-        allSlots = data;
-        usingSheets = true;
-        document.getElementById("error-msg").style.display = "none";
-      }
-    } catch(e) {
-      document.getElementById("error-msg").style.display = "block";
-    }
-  }
-
-  renderPublic();
-  if (document.querySelector(".admin-toggle").open) renderAdmin();
-  document.getElementById("last-updated").textContent =
-    "Última atualização: " + new Date().toLocaleTimeString("pt-BR");
-}
 
 function renderPublic() {
   const el = document.getElementById("public-view");
@@ -165,7 +83,6 @@ function renderPublic() {
     html += `<div class="day-label">${DAYS_META[day]}</div>`;
     slots.forEach(slot => {
       const taken = slot.status === "taken";
-      const label = taken ? (slot.partner || "Reservado") : slot.topic;
       html += `<div class="slot${taken?" taken":""}">
         <span class="slot-time">${slot.time}</span>
         <span class="slot-topic">${slot.topic}</span>
@@ -176,102 +93,7 @@ function renderPublic() {
   el.innerHTML = html;
 }
 
-function renderAdmin() {
-  const el = document.getElementById("admin-view");
-  const su = document.getElementById("summary");
-  let total=0, avail=0, taken=0, html="";
-
-  ["d1","d2"].forEach(day => {
-    const slots = allSlots.filter(s => s.day === day);
-    if (!slots.length) return;
-    html += `<div class="admin-day">${DAYS_META[day]}</div>`;
-    slots.forEach((slot, i) => {
-      total++;
-      if (slot.status==="available") avail++;
-      if (slot.status==="taken") taken++;
-      const key = slot.day+"-"+slot.time.replace("h","");
-      const isTaken = slot.status === "taken";
-      html += `<div class="admin-row">
-        <span style="font-size:13px;font-weight:500;color:#555">${slot.time}</span>
-        <span style="font-size:13px">${slot.topic}</span>
-        <input type="text" id="partner-${key}" value="${slot.partner||""}"
-          placeholder="Nome do parceiro"
-          ${!isTaken?'disabled style="opacity:.35"':""}>
-        <select id="status-${key}" onchange="prepareChange('${slot.day}','${slot.time}',this.value)">
-          <option value="available" ${!isTaken?"selected":""}>✓ Disponível</option>
-          <option value="taken"     ${ isTaken?"selected":""}>✕ Reservado</option>
-        </select>
-      </div>`;
-    });
-  });
-
-  el.innerHTML = html;
-  su.innerHTML = `
-    <div class="scard"><div class="num">${total}</div><div class="lbl">Total de slots</div></div>
-    <div class="scard"><div class="num" style="color:#3B6D11">${avail}</div><div class="lbl">Disponíveis</div></div>
-    <div class="scard"><div class="num" style="color:#A32D2D">${taken}</div><div class="lbl">Reservados</div></div>`;
-  document.getElementById("save-btn").disabled = false;
-}
-
-function prepareChange(day, time, status) {
-  const key = day+"-"+time.replace("h","");
-  const input = document.getElementById("partner-"+key);
-  if (input) {
-    input.disabled = status !== "taken";
-    input.style.opacity = status !== "taken" ? ".35" : "1";
-    if (status !== "taken") input.value = "";
-  }
-  pendingChange = { day, time, status };
-}
-
-async function saveSlot() {
-  if (!pendingChange) { showStatus("Selecione um slot para alterar.", false); return; }
-  const { day, time, status } = pendingChange;
-  const key = day+"-"+time.replace("h","");
-  const partner = (document.getElementById("partner-"+key)?.value||"").trim();
-
-  // Atualiza local imediatamente
-  const slot = allSlots.find(s => s.day===day && s.time===time);
-  if (slot) { slot.status=status; slot.partner=partner; }
-  renderPublic();
-  renderAdmin();
-  pendingChange = null;
-  showStatus("✓ Atualizado localmente.", true);
-
-  // Envia para Sheets se configurado
-  const url = getApiUrl();
-  if (url) {
-    const btn = document.getElementById("save-btn");
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> Salvando...';
-    try {
-      await fetch(url, {
-        method: "POST", mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ day, time, status, partner })
-      });
-      showStatus("✓ Salvo no Google Sheets.", true);
-    } catch(e) {
-      showStatus("Salvo localmente. Erro ao sincronizar com Sheets.", false);
-    } finally {
-      btn.disabled = false;
-      btn.textContent = "Salvar alteração";
-    }
-  }
-}
-
-function showStatus(msg, ok) {
-  const el = document.getElementById("status-msg");
-  el.textContent = msg;
-  el.className = "status-msg "+(ok===true?"status-ok":ok===false?"status-err":"");
-}
-
-document.querySelector(".admin-toggle").addEventListener("toggle", function() {
-  if (this.open) renderAdmin();
-});
-
-loadSlots();
-setInterval(loadSlots, 60000);
+renderPublic();
 </script>
 </body>
 </html>
